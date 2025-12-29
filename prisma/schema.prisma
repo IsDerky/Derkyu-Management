@@ -1,0 +1,309 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// NextAuth.js models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id                  String              @id @default(cuid())
+  name                String?
+  email               String?             @unique
+  emailVerified       DateTime?
+  image               String?
+  discordId           String?             @unique
+  accounts            Account[]
+  sessions            Session[]
+  events              Event[]
+  notes               Note[]
+  todos               Todo[]
+  tags                Tag[]
+  settings            UserSettings?
+  financeCategories   FinanceCategory[]
+  incomes             Income[]
+  expenses            Expense[]
+  investments         Investment[]
+  budgets             Budget[]
+  savingsGoals        SavingsGoal[]
+  installmentPlans    InstallmentPlan[]
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Application models
+model Event {
+  id             String    @id @default(cuid())
+  title          String
+  description    String?
+  startTime      DateTime
+  endTime        DateTime
+  location       String?
+  isRecurring    Boolean   @default(false)
+  recurrenceType String?   // "daily", "weekly", "monthly", "yearly"
+  recurrenceEnd  DateTime? // Fecha en la que termina la recurrencia
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tags           Tag[]     @relation("EventTags")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([startTime])
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  type      String   @default("text") // "text", "list", "drawing", "code", "voice", "link", "image"
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tags      Tag[]    @relation("NoteTags")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Todo {
+  id          String    @id @default(cuid())
+  title       String
+  description String?   // Nueva: descripción extendida
+  completed   Boolean   @default(false)
+  priority    String?   // "alta", "media", "baja"
+  status      String    @default("todo") // Nueva: "todo", "in_progress", "done" para Kanban
+  dueDate     DateTime?
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tags        Tag[]     @relation("TodoTags")
+  subtasks    Subtask[] // Nueva: relación con subtareas
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([completed])
+  @@index([status])
+}
+
+// Nuevo modelo para subtareas
+model Subtask {
+  id        String   @id @default(cuid())
+  title     String
+  completed Boolean  @default(false)
+  order     Int      @default(0)
+  todoId    String
+  todo      Todo     @relation(fields: [todoId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([todoId])
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String
+  color     String   @default("#3b82f6")
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  events    Event[]  @relation("EventTags")
+  notes     Note[]   @relation("NoteTags")
+  todos     Todo[]   @relation("TodoTags")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+// Configuración de módulos por usuario
+model UserSettings {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  financeEnabled  Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// Módulo de Finanzas
+model FinanceCategory {
+  id               String            @id @default(cuid())
+  name             String
+  color            String            @default("#3b82f6")
+  icon             String?           // Emoji o nombre de icono
+  userId           String
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expenses         Expense[]
+  budgets          Budget[]
+  installmentPlans InstallmentPlan[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model Income {
+  id          String   @id @default(cuid())
+  description String
+  amount      Float
+  date        DateTime
+  isRecurring Boolean  @default(false)
+  frequency   String?  // "monthly", "weekly", "biweekly", "yearly"
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([date])
+}
+
+model Expense {
+  id          String           @id @default(cuid())
+  description String
+  amount      Float
+  date        DateTime
+  categoryId  String?
+  category    FinanceCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([userId])
+  @@index([date])
+  @@index([categoryId])
+}
+
+model Investment {
+  id          String   @id @default(cuid())
+  description String
+  amount      Float
+  date        DateTime
+  type        String?  // "stocks", "crypto", "real_estate", "savings", "other"
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([date])
+}
+
+model Budget {
+  id          String           @id @default(cuid())
+  name        String
+  amount      Float            // Monto límite del presupuesto
+  period      String           // "monthly", "weekly", "yearly", "custom"
+  startDate   DateTime         // Fecha de inicio del presupuesto
+  endDate     DateTime?        // Fecha de fin (para presupuestos custom)
+  categoryId  String?
+  category    FinanceCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([userId])
+  @@index([categoryId])
+  @@index([startDate])
+}
+
+model SavingsGoal {
+  id             String   @id @default(cuid())
+  name           String
+  targetAmount   Float    // Meta de ahorro
+  currentAmount  Float    @default(0) // Cantidad ahorrada hasta ahora
+  deadline       DateTime? // Fecha objetivo (opcional)
+  description    String?
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// Sistema de pagos en cuotas (estilo PayPal)
+model InstallmentPlan {
+  id                String               @id @default(cuid())
+  description       String               // Descripción del gasto
+  totalAmount       Float                // Monto total del gasto
+  numberOfPayments  Int                  @default(3) // Número de cuotas (por defecto 3)
+  dayOfMonth        Int                  // Día del mes para pagar cada cuota (1-31)
+  firstPaymentDate  DateTime             // Fecha del primer pago
+  categoryId        String?
+  category          FinanceCategory?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  userId            String
+  user              User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments          InstallmentPayment[] // Relación con los pagos individuales
+  status            String               @default("active") // "active", "completed", "cancelled"
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+
+  @@index([userId])
+  @@index([categoryId])
+  @@index([status])
+}
+
+model InstallmentPayment {
+  id                String          @id @default(cuid())
+  installmentPlanId String
+  installmentPlan   InstallmentPlan @relation(fields: [installmentPlanId], references: [id], onDelete: Cascade)
+  amount            Float           // Monto de esta cuota
+  dueDate           DateTime        // Fecha de vencimiento
+  paymentNumber     Int             // Número de cuota (1, 2, 3)
+  isPaid            Boolean         @default(false)
+  paidDate          DateTime?       // Fecha en que se pagó
+  expenseId         String?         @unique // Referencia al gasto creado cuando se paga
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@index([installmentPlanId])
+  @@index([dueDate])
+  @@index([isPaid])
+}
