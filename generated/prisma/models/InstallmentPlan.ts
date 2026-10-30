@@ -242,7 +242,7 @@ export type InstallmentPlanGroupByOutputType = {
   _max: InstallmentPlanMaxAggregateOutputType | null
 }
 
-type GetInstallmentPlanGroupByPayload<T extends InstallmentPlanGroupByArgs> = Prisma.PrismaPromise<
+export type GetInstallmentPlanGroupByPayload<T extends InstallmentPlanGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<InstallmentPlanGroupByOutputType, T['by']> &
       {
@@ -1683,6 +1683,11 @@ export type InstallmentPlanFindManyArgs<ExtArgs extends runtime.Types.Extensions
    * Skip the first `n` InstallmentPlans.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of InstallmentPlans.
+   */
   distinct?: Prisma.InstallmentPlanScalarFieldEnum | Prisma.InstallmentPlanScalarFieldEnum[]
 }
 

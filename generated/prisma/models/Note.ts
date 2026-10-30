@@ -172,7 +172,7 @@ export type NoteGroupByOutputType = {
   _max: NoteMaxAggregateOutputType | null
 }
 
-type GetNoteGroupByPayload<T extends NoteGroupByArgs> = Prisma.PrismaPromise<
+export type GetNoteGroupByPayload<T extends NoteGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<NoteGroupByOutputType, T['by']> &
       {
@@ -1346,6 +1346,11 @@ export type NoteFindManyArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
    * Skip the first `n` Notes.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of Notes.
+   */
   distinct?: Prisma.NoteScalarFieldEnum | Prisma.NoteScalarFieldEnum[]
 }
 
