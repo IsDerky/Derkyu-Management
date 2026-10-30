@@ -224,7 +224,7 @@ export type SavingsGoalGroupByOutputType = {
   _max: SavingsGoalMaxAggregateOutputType | null
 }
 
-type GetSavingsGoalGroupByPayload<T extends SavingsGoalGroupByArgs> = Prisma.PrismaPromise<
+export type GetSavingsGoalGroupByPayload<T extends SavingsGoalGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<SavingsGoalGroupByOutputType, T['by']> &
       {
@@ -1311,6 +1311,11 @@ export type SavingsGoalFindManyArgs<ExtArgs extends runtime.Types.Extensions.Int
    * Skip the first `n` SavingsGoals.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of SavingsGoals.
+   */
   distinct?: Prisma.SavingsGoalScalarFieldEnum | Prisma.SavingsGoalScalarFieldEnum[]
 }
 

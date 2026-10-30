@@ -220,7 +220,7 @@ export type IncomeGroupByOutputType = {
   _max: IncomeMaxAggregateOutputType | null
 }
 
-type GetIncomeGroupByPayload<T extends IncomeGroupByArgs> = Prisma.PrismaPromise<
+export type GetIncomeGroupByPayload<T extends IncomeGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<IncomeGroupByOutputType, T['by']> &
       {
@@ -1313,6 +1313,11 @@ export type IncomeFindManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
    * Skip the first `n` Incomes.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of Incomes.
+   */
   distinct?: Prisma.IncomeScalarFieldEnum | Prisma.IncomeScalarFieldEnum[]
 }
 
